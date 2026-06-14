@@ -1,0 +1,2474 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DepoPay - Eşya Depolama Ödeme Takip Sistemi</title>
+    <!-- Google Fonts - Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for beautiful analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0A988B;
+            --primary-hover: #087f75;
+            --primary-light: #e6f5f3;
+            --secondary: #0f172a;
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Dark Mode variables */
+        body.dark-mode {
+            --bg-main: #0b1329;
+            --bg-card: #111c44;
+            --text-dark: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #1e293b;
+            --primary-light: rgba(10, 152, 139, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            transition: var(--transition);
+        }
+
+        /* Sidebar Navigation */
+        aside {
+            width: 260px;
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            transition: var(--transition);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 36px;
+        }
+
+        .logo-icon {
+            background-color: var(--primary);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(10, 152, 139, 0.3);
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            width: 24px;
+            display: inline-flex;
+            justify-content: center;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .user-info h4 {
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .user-info p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Main Content Area */
+        main {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 40px;
+            max-width: 1400px;
+            transition: var(--transition);
+        }
+
+        /* Top Bar */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 36px;
+        }
+
+        .search-bar {
+            position: relative;
+            width: 320px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 16px 12px 42px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: var(--bg-card);
+            color: var(--text-dark);
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .search-bar input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .search-bar .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-icon {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-dark);
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .btn-icon:hover {
+            background-color: var(--border-color);
+        }
+
+        .btn-icon .badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background-color: var(--danger);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            border: 2px solid var(--bg-card);
+        }
+
+        .role-selector {
+            background-color: var(--primary-light);
+            border: 1px solid rgba(10, 152, 139, 0.2);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .role-selector:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* Dashboard View Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 36px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-info h3 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .stat-info p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .stat-trend {
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 6px;
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+        }
+
+        .stat-trend.up {
+            background-color: #d1fae5;
+            color: var(--success);
+        }
+
+        .stat-trend.down {
+            background-color: #fee2e2;
+            color: var(--danger);
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-icon.revenue { background-color: #d1fae5; color: var(--success); }
+        .stat-icon.occupancy { background-color: #e0f2fe; color: #0284c7; }
+        .stat-icon.overdue { background-color: #fee2e2; color: var(--danger); }
+        .stat-icon.customers { background-color: #fef3c7; color: var(--warning); }
+
+        /* Secondary Grid */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 36px;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Mini Table style for alerts */
+        .alert-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px;
+            border-radius: var(--radius-md);
+            background-color: var(--bg-main);
+            border-left: 4px solid var(--danger);
+            transition: var(--transition);
+        }
+
+        .alert-item:hover {
+            transform: translateX(4px);
+        }
+
+        .alert-details h5 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .alert-details p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+        }
+
+        .btn-primary-sm {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary-sm:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Storage Unit Grid */
+        .units-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .unit-box {
+            aspect-ratio: 1;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .unit-box:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+
+        .unit-box.empty {
+            background-color: var(--bg-main);
+            border-left: 4px solid var(--text-muted);
+        }
+
+        .unit-box.occupied {
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .unit-box.overdue {
+            background-color: #fee2e2;
+            border-left: 4px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .unit-number {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .unit-size {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        /* Generic Buttons */
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(10, 152, 139, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-color);
+        }
+
+        /* Data Tables */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            padding: 16px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        tr:hover td {
+            background-color: var(--bg-main);
+        }
+
+        .badge-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-status.paid {
+            background-color: #d1fae5;
+            color: var(--success);
+        }
+
+        .badge-status.pending {
+            background-color: #fef3c7;
+            color: var(--warning);
+        }
+
+        .badge-status.overdue {
+            background-color: #fee2e2;
+            color: var(--danger);
+        }
+
+        .action-cell {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-card);
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .icon-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        .icon-btn.delete:hover {
+            background-color: #fee2e2;
+            color: var(--danger);
+            border-color: #fca5a5;
+        }
+
+        .icon-btn.primary:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-color: rgba(10, 152, 139, 0.4);
+        }
+
+        /* View Switching Management */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background-color: var(--bg-card);
+            border-radius: var(--radius-lg);
+            width: 500px;
+            max-width: 90%;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 24px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background-color: var(--bg-main);
+        }
+
+        .close-modal {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            color: var(--text-dark);
+        }
+
+        /* Form styling */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: var(--bg-card);
+            color: var(--text-dark);
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        /* Toast Alert (Notification Popups) */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            background-color: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            border-left: 5px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 320px;
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: var(--transition);
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.warning { border-left-color: var(--warning); }
+        .toast.danger { border-left-color: var(--danger); }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Customer Portal Styling Override */
+        .customer-portal-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #087369 100%);
+            color: white;
+            padding: 30px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 20px rgba(10, 152, 139, 0.15);
+        }
+
+        .customer-portal-header h2 {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .customer-portal-header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        /* Credit card mock styling */
+        .credit-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            position: relative;
+            height: 200px;
+            width: 340px;
+            box-shadow: var(--shadow-lg);
+            margin: 0 auto 24px auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-chip {
+            width: 45px;
+            height: 35px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-radius: 6px;
+        }
+
+        .card-number {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 18px;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        .card-footer-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        /* Filter Pills */
+        .filter-pills {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .pill {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .pill.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+
+        .owner-text {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .clickable {
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+            .analytics-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            body { display: block; overflow-x: hidden; }
+            aside {
+                position: relative;
+                width: 100%;
+                height: auto;
+                padding: 14px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .logo-container { margin-bottom: 14px; }
+            .nav-links {
+                flex-direction: row;
+                overflow-x: auto;
+                gap: 8px;
+                padding-bottom: 8px;
+                -webkit-overflow-scrolling: touch;
+            }
+            .nav-links li { flex: 0 0 auto; }
+            .nav-item { padding: 10px 12px; white-space: nowrap; }
+            .sidebar-footer { margin-top: 12px; padding-top: 12px; }
+            main { margin-left: 0; padding: 16px; max-width: none; }
+            header { flex-direction: column; align-items: stretch; gap: 14px; margin-bottom: 22px; }
+            #page-title { font-size: 26px; line-height: 1.15; }
+            .header-actions { width: 100%; flex-wrap: wrap; gap: 10px; }
+            .search-bar { width: 100%; flex: 1 1 100%; }
+            .dashboard-grid { grid-template-columns: 1fr; gap: 14px; margin-bottom: 22px; }
+            .analytics-grid { grid-template-columns: 1fr; gap: 14px; }
+            .card { padding: 16px; }
+            .card-header { align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+            .stat-card { padding: 18px; }
+            .filter-pills { overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+            .pill { flex: 0 0 auto; }
+            .units-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+            .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            table { min-width: 720px; }
+            .customer-portal-header { flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; }
+            .modal { width: 94%; max-width: 94%; }
+            .modal-body { max-height: 72vh; }
+            .modal-footer { flex-wrap: wrap; }
+            .modal-footer .btn { flex: 1 1 120px; justify-content: center; }
+            .credit-card { width: 100%; height: 190px; }
+            .toast-container { left: 12px; right: 12px; bottom: 12px; }
+            .toast { min-width: 0; width: 100%; }
+        }
+
+        @media (max-width: 420px) {
+            .units-grid { grid-template-columns: 1fr; }
+            .btn { width: 100%; justify-content: center; }
+            .header-actions .btn-icon { flex: 0 0 44px; }
+        }
+
+
+
+        /* MOBİL TAM ÇALIŞIR EKLERİ */
+        .mobile-bottom-nav { display: none; }
+        .mobile-action-help { display: none; }
+        .stat-card.clickable, .btn, .btn-icon, .nav-item, .pill, .icon-btn, .role-selector, .unit-box, .close-modal {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(10,152,139,.18);
+        }
+        @media (max-width: 768px) {
+            body { padding-bottom: 82px; }
+            aside { position: static !important; z-index: 1; }
+            main { position: relative; z-index: 2; }
+            .mobile-bottom-nav {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: var(--bg-card);
+                border-top: 1px solid var(--border-color);
+                box-shadow: 0 -8px 20px rgba(15,23,42,.12);
+                z-index: 9999;
+                padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+            }
+            .mobile-bottom-nav button {
+                border: 0;
+                background: transparent;
+                color: var(--text-muted);
+                font-size: 11px;
+                font-weight: 700;
+                padding: 8px 2px;
+                border-radius: 12px;
+                cursor: pointer;
+                touch-action: manipulation;
+            }
+            .mobile-bottom-nav button.active {
+                background: var(--primary-light);
+                color: var(--primary);
+            }
+            .mobile-bottom-nav span {
+                display: block;
+                font-size: 20px;
+                line-height: 1.1;
+                margin-bottom: 2px;
+            }
+            .mobile-action-help {
+                display: block;
+                background: var(--primary-light);
+                color: var(--primary);
+                padding: 10px 12px;
+                border-radius: 12px;
+                font-size: 13px;
+                font-weight: 700;
+                margin-bottom: 14px;
+            }
+            .btn, .role-selector { min-height: 46px; }
+            .btn-icon, .icon-btn { min-width: 46px; min-height: 46px; }
+            .action-cell { min-width: 160px; }
+            table { min-width: 760px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar">
+        <div class="logo-container">
+            <div class="logo-icon">D</div>
+            <div><div class="logo-text">DepoPay</div><div class="owner-text">Sahibi: Emirhan Ayırtır</div></div>
+        </div>
+        <ul class="nav-links" id="nav-links">
+            <li>
+                <div class="nav-item active" onclick="switchView('dashboard')">
+                    <span class="nav-icon">📊</span>
+                    <span>Yönetici Paneli</span>
+                </div>
+            </li>
+            <li>
+                <div class="nav-item" onclick="switchView('payments')">
+                    <span class="nav-icon">💳</span>
+                    <span>Ödeme Takibi</span>
+                </div>
+            </li>
+            <li>
+                <div class="nav-item" onclick="switchView('units')">
+                    <span class="nav-icon">📦</span>
+                    <span>Depo Birimleri</span>
+                </div>
+            </li>
+            <li>
+                <div class="nav-item" onclick="switchView('customers')">
+                    <span class="nav-icon">👥</span>
+                    <span>Müşteri Yönetimi</span>
+                </div>
+            </li>
+            <li>
+                <div class="nav-item" onclick="switchView('settings')">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Sistem Ayarları</span>
+                </div>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <button class="role-selector" id="role-toggle-btn" onclick="togglePortalMode()">
+                ➡️ Müşteri Portalı
+            </button>
+            <div class="user-profile">
+                <div class="avatar" id="user-avatar">EA</div>
+                <div class="user-info">
+                    <h4 id="user-fullname">Emirhan Ayırtır</h4>
+                    <p id="user-role-label">Yönetici</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main>
+        <!-- Top Header -->
+        <header>
+            <div>
+                <h1 id="page-title">Yönetici Paneli</h1>
+                <p id="page-subtitle" style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Depolama ödemeleri ve müşteri durumu takibi.</p>
+            </div>
+            <div class="header-actions">
+                <div class="search-bar" id="header-search-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="global-search" placeholder="Müşteri veya depo ara..." oninput="handleGlobalSearch()">
+                </div>
+                <button class="btn-icon" onclick="showToast('Sistem güncel. Bekleyen bildirim yok.', 'success')">
+                    🔔
+                    <span class="badge" id="notification-count">2</span>
+                </button>
+                <button class="btn-icon" onclick="toggleDarkMode()">
+                    🌓
+                </button>
+            </div>
+        </header>
+
+        <div class="mobile-action-help">Mobilde alt menüden bölümlere geçebilirsin. Tablolarda işlem butonları için sağa kaydır.</div>
+
+        <!-- Toast Notification Container -->
+        <div class="toast-container" id="toast-container"></div>
+
+        <!-- ============================================== -->
+        <!-- VIEW: DASHBOARD -->
+        <!-- ============================================== -->
+        <section id="view-dashboard" class="view-section active">
+            <!-- Stat Cards -->
+            <div class="dashboard-grid">
+                <div class="stat-card clickable" onclick="switchView('payments')" title="Ödeme takibine git">
+                    <div class="stat-info">
+                        <p>Aylık Tahsilat</p>
+                        <h3 id="stat-revenue">₺48,250</h3>
+                        <span class="stat-trend up">↑ 12% geçen ay</span>
+                    </div>
+                    <div class="stat-icon revenue">💰</div>
+                </div>
+                <div class="stat-card clickable" onclick="switchView('units')" title="Depo birimlerine git">
+                    <div class="stat-info">
+                        <p>Doluluk Oranı</p>
+                        <h3 id="stat-occupancy">85%</h3>
+                        <span class="stat-trend up">↑ 4 yeni depo</span>
+                    </div>
+                    <div class="stat-icon occupancy">📦</div>
+                </div>
+                <div class="stat-card clickable" onclick="switchView('payments'); filterPayments('overdue')" title="Geciken ödemeleri göster">
+                    <div class="stat-info">
+                        <p>Vadesi Geçen Ödeme</p>
+                        <h3 id="stat-overdue">4</h3>
+                        <span class="stat-trend down" style="background-color: #fee2e2; color: var(--danger);">↓ Kritik durum</span>
+                    </div>
+                    <div class="stat-icon overdue">⚠️</div>
+                </div>
+                <div class="stat-card clickable" onclick="switchView('customers')" title="Müşteri yönetimine git">
+                    <div class="stat-info">
+                        <p>Toplam Aktif Müşteri</p>
+                        <h3 id="stat-customers">32</h3>
+                        <span class="stat-trend up">↑ 2 bu hafta</span>
+                    </div>
+                    <div class="stat-icon customers">👥</div>
+                </div>
+            </div>
+
+            <!-- Graphs and Alerts Grid -->
+            <div class="analytics-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Finansal Trend (Aylık Tahakkuk/Tahsilat)</h3>
+                        <span style="color: var(--text-muted); font-size: 12px;">Son 6 Ay</span>
+                    </div>
+                    <div style="position: relative; height: 300px;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Vadesi Geçen Kritik Durumlar</h3>
+                        <span class="badge-status overdue" id="overdue-badge-count">4 Gecikmiş</span>
+                    </div>
+                    <div class="alert-list" id="overdue-list">
+                        <!-- Alerts populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VIEW: PAYMENTS -->
+        <!-- ============================================== -->
+        <section id="view-payments" class="view-section">
+            <div class="card">
+                <div class="card-header" style="flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <h3 class="card-title">Müşteri Ödeme Takip Tablosu</h3>
+                        <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Ödeme planlarını filtreleyin, tahsilat kaydedin ve bildirim gönderin.</p>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn btn-secondary" onclick="exportPaymentsToCSV()">
+                            📥 Excel (CSV) Aktar
+                        </button>
+                        <button class="btn btn-primary" onclick="openPaymentModal()">
+                            ➕ Yeni Ödeme Planı
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-pills" id="payment-filters">
+                    <div class="pill active" onclick="filterPayments('all')">Hepsi</div>
+                    <div class="pill" onclick="filterPayments('paid')">Ödendi</div>
+                    <div class="pill" onclick="filterPayments('pending')">Bekliyor</div>
+                    <div class="pill" onclick="filterPayments('overdue')">Gecikti</div>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Müşteri</th>
+                                <th>Depo Birimi</th>
+                                <th>Kira Tutarı</th>
+                                <th>Son Ödeme Tarihi</th>
+                                <th>Ödeme Periyodu</th>
+                                <th>Durum</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payments-table-body">
+                            <!-- Table rows loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VIEW: STORAGE UNITS -->
+        <!-- ============================================== -->
+        <section id="view-units" class="view-section">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Depo Birimleri Haritası</h3>
+                        <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Depoların doluluk ve ödeme durumlarını görsel olarak izleyin. Üzerine tıklayarak düzenleyin.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openAddUnitModal()">
+                        ➕ Yeni Depo Ekle
+                    </button>
+                </div>
+                <div class="filter-pills">
+                    <div class="pill active" onclick="filterUnits('all')">Tüm Depolar</div>
+                    <div class="pill" onclick="filterUnits('empty')">Boş</div>
+                    <div class="pill" onclick="filterUnits('occupied')">Dolu</div>
+                    <div class="pill" onclick="filterUnits('overdue')">Ödemesi Gecikmiş</div>
+                </div>
+                <div class="units-grid" id="units-grid-container">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VIEW: CUSTOMER MANAGEMENT -->
+        <!-- ============================================== -->
+        <section id="view-customers" class="view-section">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Müşteri Rehberi</h3>
+                        <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Aktif ve pasif müşterilerin iletişim bilgileri ve depolama detayları.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openCustomerModal()">
+                        ➕ Yeni Müşteri Kaydı
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Müşteri Adı</th>
+                                <th>Telefon</th>
+                                <th>E-posta</th>
+                                <th>Kiraladığı Depo</th>
+                                <th>Durum</th>
+                                <th>Kayıt Tarihi</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VIEW: SYSTEM SETTINGS -->
+        <!-- ============================================== -->
+        <section id="view-settings" class="view-section">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">Ödeme & Bildirim Ayarları</h3>
+                </div>
+                <div class="card-body" style="padding-top: 16px;">
+                    <form id="settings-form" onsubmit="saveSettings(event)">
+                        <div class="form-group">
+                            <label for="grace-period">Vade Toleransı (Gün)</label>
+                            <input type="number" id="grace-period" value="5" min="0">
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Ödeme son tarihinden kaç gün sonra hesabın otomatik "Gecikmiş" olarak işaretleneceği.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="email-template">E-posta Hatırlatma Şablonu</label>
+                            <textarea id="email-template" rows="4">Sayın {NAME}, {UNIT} numaralı depo biriminize ait {AMOUNT} tutarındaki kiranızın son ödeme tarihi {DATE} geçmiştir. Lütfen ödemenizi Müşteri Portalı üzerinden yapınız.</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="sms-template">SMS Hatırlatma Şablonu</label>
+                            <textarea id="sms-template" rows="3">DepoPay: Sayın {NAME}, {UNIT} depo kirası ({AMOUNT}) vadesi geçmiştir. Hemen ödemek için tıklayın: depopay.com/portal</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Ayarları Kaydet</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VIEW: CUSTOMER PORTAL -->
+        <!-- ============================================== -->
+        <section id="view-portal" class="view-section">
+            <div class="customer-portal-header">
+                <div>
+                    <h2 id="portal-welcome-name">Hoş Geldiniz, Can Yılmaz</h2>
+                    <p>Müşteri Portalı üzerinden faturalarınızı inceleyebilir ve güvenli ödeme yapabilirsiniz.</p>
+                </div>
+                <div style="text-align: right;">
+                    <p style="font-weight: 600;">Kiralık Depolarım</p>
+                    <h3 style="color: white; font-size: 24px;" id="portal-unit-count">1 Adet</h3>
+                </div>
+            </div>
+
+            <div class="analytics-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Aktif Depolarım ve Ödeme Bekleyen Faturalar</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Depo No</th>
+                                    <th>Boyut</th>
+                                    <th>Kira Tutarı</th>
+                                    <th>Son Ödeme Tarihi</th>
+                                    <th>Durum</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="portal-invoices-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Son Ödeme Geçmişi</h3>
+                    </div>
+                    <div class="alert-list" id="portal-history-list" style="gap: 8px;">
+                        <!-- Mock invoices paid -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============================================== -->
+    <!-- MODAL: ADD/EDIT CUSTOMER -->
+    <!-- ============================================== -->
+    <div class="modal-overlay" id="customer-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="customer-modal-title">Yeni Müşteri Ekle</h3>
+                <span class="close-modal" onclick="closeCustomerModal()">&times;</span>
+            </div>
+            <form id="customer-form" onsubmit="handleCustomerSubmit(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="edit-customer-id">
+                    <div class="form-group">
+                        <label for="cust-name">Müşteri Ad Soyad *</label>
+                        <input type="text" id="cust-name" required placeholder="Örn: Can Yılmaz">
+                    </div>
+                    <div class="form-group">
+                        <label for="cust-phone">Telefon Numarası *</label>
+                        <input type="tel" id="cust-phone" required placeholder="05XX XXX XX XX">
+                    </div>
+                    <div class="form-group">
+                        <label for="cust-email">E-posta Adresi *</label>
+                        <input type="email" id="cust-email" required placeholder="can.yilmaz@mail.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="cust-status">Durum</label>
+                        <select id="cust-status">
+                            <option value="active">Aktif</option>
+                            <option value="inactive">Pasif</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeCustomerModal()">İptal</button>
+                    <button type="submit" class="btn btn-primary" id="customer-submit-btn">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL: ADD/EDIT STORAGE UNIT -->
+    <!-- ============================================== -->
+    <div class="modal-overlay" id="unit-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="unit-modal-title">Yeni Depo Birimi Ekle</h3>
+                <span class="close-modal" onclick="closeUnitModal()">&times;</span>
+            </div>
+            <form id="unit-form" onsubmit="handleUnitSubmit(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="edit-unit-id">
+                    <div class="form-group">
+                        <label for="unit-name-input">Depo Numarası *</label>
+                        <input type="text" id="unit-name-input" required placeholder="Örn: A-105">
+                    </div>
+                    <div class="form-group">
+                        <label for="unit-size-input">Boyut (m²) *</label>
+                        <input type="number" id="unit-size-input" required placeholder="Örn: 15">
+                    </div>
+                    <div class="form-group">
+                        <label for="unit-price-input">Aylık Kira Bedeli (₺) *</label>
+                        <input type="number" id="unit-price-input" required placeholder="Örn: 1500">
+                    </div>
+                    <div class="form-group">
+                        <label for="unit-status-input">Doluluk Durumu</label>
+                        <select id="unit-status-input">
+                            <option value="empty">Boş</option>
+                            <option value="occupied">Dolu</option>
+                            <option value="overdue">Ödemesi Gecikmiş</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeUnitModal()">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL: NEW PAYMENT PLAN -->
+    <!-- ============================================== -->
+    <div class="modal-overlay" id="payment-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Yeni Ödeme Planı Oluştur</h3>
+                <span class="close-modal" onclick="closePaymentModal()">&times;</span>
+            </div>
+            <form id="payment-form" onsubmit="handlePaymentSubmit(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="pay-customer">Müşteri Seçin *</label>
+                        <select id="pay-customer" required>
+                            <!-- Customers populated here -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pay-unit">Depo Birimi Seçin *</label>
+                        <select id="pay-unit" required onchange="updatePaymentAmountFromUnit()">
+                            <!-- Units populated here -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pay-amount">Kira Tutarı (₺) *</label>
+                        <input type="number" id="pay-amount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pay-due">Son Ödeme Tarihi *</label>
+                        <input type="date" id="pay-due" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pay-cycle">Ödeme Periyodu</label>
+                        <select id="pay-cycle">
+                            <option value="Aylık">Aylık</option>
+                            <option value="3 Aylık">3 Aylık</option>
+                            <option value="Yıllık">Yıllık</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pay-status">Durum</label>
+                        <select id="pay-status">
+                            <option value="pending">Ödeme Bekliyor</option>
+                            <option value="paid">Ödendi</option>
+                            <option value="overdue">Gecikmiş</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">İptal</button>
+                    <button type="submit" class="btn btn-primary">Planı Başlat</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL: STRIPE / CREDIT CARD PAYMENT -->
+    <!-- ============================================== -->
+    <div class="modal-overlay" id="checkout-modal">
+        <div class="modal">
+            <div class="modal-header" style="background-color: var(--primary); color: white;">
+                <h3 style="color: white;">Güvenli Kart ile Ödeme (Stripe Entegrasyonu)</h3>
+                <span class="close-modal" onclick="closeCheckoutModal()" style="color: white;">&times;</span>
+            </div>
+            <form id="checkout-form" onsubmit="processCardPayment(event)">
+                <input type="hidden" id="checkout-payment-id">
+                <div class="modal-body">
+                    <!-- Premium Simulated Credit Card -->
+                    <div class="credit-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: bold; font-size: 14px; letter-spacing: 1px;">DEPOPAY CARD</span>
+                            <span style="font-style: italic; font-weight: bold;">VISA</span>
+                        </div>
+                        <div class="card-chip"></div>
+                        <div class="card-number" id="cc-number-mock">•••• •••• •••• ••••</div>
+                        <div class="card-footer-info">
+                            <div>
+                                <span style="font-size: 9px; display: block; opacity: 0.7;">KART SAHİBİ</span>
+                                <span id="cc-holder-mock">MÜŞTERİ ADI</span>
+                            </div>
+                            <div>
+                                <span style="font-size: 9px; display: block; opacity: 0.7;">SON KUL. TAR.</span>
+                                <span id="cc-expiry-mock">12/29</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cc-number">Kart Numarası *</label>
+                        <input type="text" id="cc-number" required placeholder="4321 5678 9012 3456" maxlength="19" oninput="formatCardNumber(this)">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label for="cc-expiry">Son Kullanma (AA/YY) *</label>
+                            <input type="text" id="cc-expiry" required placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this)">
+                        </div>
+                        <div class="form-group">
+                            <label for="cc-cvc">CVC Kodu *</label>
+                            <input type="password" id="cc-cvc" required placeholder="123" maxlength="3">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cc-name">Kart Üzerindeki İsim *</label>
+                        <input type="text" id="cc-name" required placeholder="Can Yılmaz" oninput="document.getElementById('cc-holder-mock').innerText = this.value.toUpperCase() || 'MÜŞTERİ ADI'">
+                    </div>
+                    <div style="text-align: center; margin-top: 12px; color: var(--text-muted); font-size: 12px;">
+                        🔒 256-Bit SSL korumalı Stripe altyapısı ile güvence altına alınmıştır.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeCheckoutModal()">İptal</button>
+                    <button type="submit" class="btn btn-primary" id="checkout-pay-btn">₺0.00 Öde</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- CORE JAVASCRIPT ENGINE (LOCALSTORAGE & LOGIC) -->
+    <!-- ============================================== -->
+    <script>
+        // Mock Initial Database
+        const initialCustomers = [
+            { id: "cust-1", name: "Can Yılmaz", phone: "0532 123 45 67", email: "can.yilmaz@mail.com", status: "active", date: "2026-01-10" },
+            { id: "cust-2", name: "Elif Demir", phone: "0544 987 65 43", email: "elif.demir@mail.com", status: "active", date: "2026-02-15" },
+            { id: "cust-3", name: "Burak Kaya", phone: "0555 456 78 90", email: "burak.kaya@mail.com", status: "active", date: "2026-03-20" },
+            { id: "cust-4", name: "Merve Çelik", phone: "0533 111 22 33", email: "merve.celik@mail.com", status: "inactive", date: "2025-12-05" }
+        ];
+
+        const initialUnits = [
+            { id: "unit-1", name: "A-101", size: 10, price: 1200, status: "occupied" },
+            { id: "unit-2", name: "A-102", size: 15, price: 1800, status: "occupied" },
+            { id: "unit-3", name: "A-103", size: 8, price: 1000, status: "overdue" },
+            { id: "unit-4", name: "A-104", size: 20, price: 2500, status: "empty" },
+            { id: "unit-5", name: "B-201", size: 12, price: 1400, status: "occupied" },
+            { id: "unit-6", name: "B-202", size: 10, price: 1200, status: "empty" },
+            { id: "unit-7", name: "B-203", size: 25, price: 3000, status: "empty" }
+        ];
+
+        const initialPayments = [
+            { id: "pay-1", customerId: "cust-1", unitId: "unit-1", amount: 1200, dueDate: "2026-06-12", status: "paid", cycle: "Aylık" },
+            { id: "pay-2", customerId: "cust-2", unitId: "unit-2", amount: 1800, dueDate: "2026-06-10", status: "paid", cycle: "Aylık" },
+            { id: "pay-3", customerId: "cust-3", unitId: "unit-3", amount: 1000, dueDate: "2026-06-05", status: "overdue", cycle: "Aylık" },
+            { id: "pay-4", customerId: "cust-1", unitId: "unit-1", amount: 1200, dueDate: "2026-07-12", status: "pending", cycle: "Aylık" },
+            { id: "pay-5", customerId: "cust-2", unitId: "unit-5", amount: 1400, dueDate: "2026-06-01", status: "overdue", cycle: "Aylık" }
+        ];
+
+        // Database variables
+        let customers = [];
+        let units = [];
+        let payments = [];
+        let currentRole = "admin"; // admin vs customer
+        let activeTab = "dashboard";
+        let activeFilters = { payments: 'all', units: 'all' };
+        let revenueChart = null;
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            // Load from LocalStorage or seed mock data
+            if (!localStorage.getItem('depopay_customers')) {
+                localStorage.setItem('depopay_customers', JSON.stringify(initialCustomers));
+                localStorage.setItem('depopay_units', JSON.stringify(initialUnits));
+                localStorage.setItem('depopay_payments', JSON.stringify(initialPayments));
+            }
+
+            loadDatabase();
+            renderAll();
+            initCharts();
+            showToast("Veritabanı başarıyla yüklendi.", "success");
+        });
+
+        function loadDatabase() {
+            customers = JSON.parse(localStorage.getItem('depopay_customers'));
+            units = JSON.parse(localStorage.getItem('depopay_units'));
+            payments = JSON.parse(localStorage.getItem('depopay_payments'));
+        }
+
+        function saveDatabase() {
+            localStorage.setItem('depopay_customers', JSON.stringify(customers));
+            localStorage.setItem('depopay_units', JSON.stringify(units));
+            localStorage.setItem('depopay_payments', JSON.stringify(payments));
+            loadDatabase();
+            renderAll();
+            updateCharts();
+        }
+
+        // View Switcher
+        function switchView(viewName) {
+            activeTab = viewName;
+            
+            // Update Navigation Menu Highlight
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            // Find appropriate menu button and add active class
+            let menuIndex = 0;
+            if (viewName === 'payments') menuIndex = 1;
+            else if (viewName === 'units') menuIndex = 2;
+            else if (viewName === 'customers') menuIndex = 3;
+            else if (viewName === 'settings') menuIndex = 4;
+            
+            if (currentRole === 'admin') {
+                navItems[menuIndex].classList.add('active');
+            }
+
+            // Hide/Show Views
+            document.querySelectorAll('.view-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            const targetSection = document.getElementById(`view-${viewName}`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            // Update Header Title
+            const titleEl = document.getElementById('page-title');
+            const subtitleEl = document.getElementById('page-subtitle');
+            
+            if (viewName === 'dashboard') {
+                titleEl.innerText = "Yönetici Paneli";
+                subtitleEl.innerText = "Depolama ödemeleri ve müşteri durumu takibi.";
+            } else if (viewName === 'payments') {
+                titleEl.innerText = "Ödeme Takip Merkezi";
+                subtitleEl.innerText = "Fatura planlama, tahsilatlar ve hatırlatmalar.";
+            } else if (viewName === 'units') {
+                titleEl.innerText = "Depo Birimleri Yönetimi";
+                subtitleEl.innerText = "Fiziksel odaların kiralama ve doluluk haritası.";
+            } else if (viewName === 'customers') {
+                titleEl.innerText = "Müşteri Yönetimi";
+                subtitleEl.innerText = "Müşteri kayıt rehberi ve kiralama geçmişleri.";
+            } else if (viewName === 'settings') {
+                titleEl.innerText = "Sistem Ayarları";
+                subtitleEl.innerText = "Otomatik bildirim şablonları ve vadelendirme parametreleri.";
+            } else if (viewName === 'portal') {
+                titleEl.innerText = "Müşteri Ödeme Portalı";
+                subtitleEl.innerText = "Faturalarınızı ödeyin ve depo bilgilerinizi inceleyin.";
+            }
+        }
+
+        // Toggle Portal Mode (Admin View vs Client View)
+        function togglePortalMode() {
+            const btn = document.getElementById('role-toggle-btn');
+            const avatar = document.getElementById('user-avatar');
+            const fullname = document.getElementById('user-fullname');
+            const label = document.getElementById('user-role-label');
+            const navLinks = document.getElementById('nav-links');
+            const searchContainer = document.getElementById('header-search-container');
+
+            if (currentRole === 'admin') {
+                // Switch to Customer Portal Mode
+                currentRole = 'customer';
+                btn.innerText = "⬅️ Yönetici Paneli";
+                avatar.innerText = "CY";
+                fullname.innerText = "Can Yılmaz";
+                label.innerText = "Müşteri";
+                searchContainer.style.display = "none";
+                
+                // Hide sidebar items for client
+                navLinks.style.pointerEvents = "none";
+                navLinks.style.opacity = "0.3";
+                
+                switchView('portal');
+            } else {
+                // Switch back to Admin Mode
+                currentRole = 'admin';
+                btn.innerText = "➡️ Müşteri Portalı";
+                avatar.innerText = "EA";
+                fullname.innerText = "Emirhan Ayırtır";
+                label.innerText = "Yönetici";
+                searchContainer.style.display = "block";
+                
+                navLinks.style.pointerEvents = "auto";
+                navLinks.style.opacity = "1";
+                
+                switchView('dashboard');
+            }
+        }
+
+        // Render functions
+        function renderAll() {
+            renderDashboardStats();
+            renderOverdueAlerts();
+            renderPaymentsTable();
+            renderUnitsGrid();
+            renderCustomersTable();
+            renderCustomerPortal();
+        }
+
+        // 1. Dashboard Stats
+        function renderDashboardStats() {
+            // Active customers
+            const activeCust = customers.filter(c => c.status === 'active').length;
+            document.getElementById('stat-customers').innerText = activeCust;
+
+            // Total revenue (paid payments)
+            const totalPaid = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
+            document.getElementById('stat-revenue').innerText = `₺${totalPaid.toLocaleString('tr-TR')}`;
+
+            // Occupied units percentage
+            const totalUnits = units.length;
+            const occupiedUnits = units.filter(u => u.status === 'occupied' || u.status === 'overdue').length;
+            const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
+            document.getElementById('stat-occupancy').innerText = `${occupancyRate}%`;
+
+            // Overdue account count
+            const overdueCount = payments.filter(p => p.status === 'overdue').length;
+            document.getElementById('stat-overdue').innerText = overdueCount;
+            document.getElementById('overdue-badge-count').innerText = `${overdueCount} Gecikmiş`;
+        }
+
+        // 2. Overdue Alerts
+        function renderOverdueAlerts() {
+            const listEl = document.getElementById('overdue-list');
+            listEl.innerHTML = '';
+            
+            const overduePayments = payments.filter(p => p.status === 'overdue');
+            
+            if (overduePayments.length === 0) {
+                listEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Vadesi geçmiş borç bulunmamaktadır. 🎉</div>';
+                return;
+            }
+
+            overduePayments.forEach(p => {
+                const customer = customers.find(c => c.id === p.customerId) || { name: 'Bilinmeyen Müşteri' };
+                const unit = units.find(u => u.id === p.unitId) || { name: 'Depo -' };
+                
+                const item = document.createElement('div');
+                item.className = 'alert-item';
+                item.innerHTML = `
+                    <div class="alert-details">
+                        <h5>${customer.name}</h5>
+                        <p>${unit.name} Depo - Borç: ₺${p.amount}</p>
+                        <p style="font-size: 11px; color: var(--danger); font-weight: 600;">Son Gün: ${formatDateText(p.dueDate)}</p>
+                    </div>
+                    <button class="btn-sm btn-primary-sm" onclick="sendSimulatedAlert('${p.id}')">Hatırlat</button>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        // 3. Payments Table
+        function renderPaymentsTable() {
+            const tbody = document.getElementById('payments-table-body');
+            tbody.innerHTML = '';
+
+            let filtered = payments;
+            if (activeFilters.payments !== 'all') {
+                filtered = payments.filter(p => p.status === activeFilters.payments);
+            }
+
+            // Global search filter
+            const query = document.getElementById('global-search').value.toLowerCase().trim();
+            if (query !== '' && activeTab === 'payments') {
+                filtered = filtered.filter(p => {
+                    const cust = customers.find(c => c.id === p.customerId);
+                    const unit = units.find(u => u.id === p.unitId);
+                    return (cust && cust.name.toLowerCase().includes(query)) ||
+                           (unit && unit.name.toLowerCase().includes(query)) ||
+                           p.status.toLowerCase().includes(query);
+                });
+            }
+
+            filtered.forEach(p => {
+                const customer = customers.find(c => c.id === p.customerId) || { name: 'Bilinmeyen Müşteri' };
+                const unit = units.find(u => u.id === p.unitId) || { name: 'Depo -' };
+                
+                let statusText = "Ödeme Bekliyor";
+                if (p.status === 'paid') statusText = "Ödendi";
+                if (p.status === 'overdue') statusText = "Gecikti";
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 500;">${customer.name}</td>
+                    <td><span style="background-color: var(--primary-light); color: var(--primary); padding: 4px 8px; border-radius: var(--radius-sm); font-weight: 600;">${unit.name}</span></td>
+                    <td style="font-weight: 600;">₺${p.amount.toLocaleString('tr-TR')}</td>
+                    <td>${formatDateText(p.dueDate)}</td>
+                    <td>${p.cycle || 'Aylık'}</td>
+                    <td><span class="badge-status ${p.status}">${statusText}</span></td>
+                    <td class="action-cell">
+                        ${p.status !== 'paid' ? `<button class="icon-btn primary" title="Ödeme Al" onclick="openStripeCheckout('${p.id}')">💵</button>` : ''}
+                        <button class="icon-btn primary" title="Hatırlatma Gönder" onclick="sendSimulatedAlert('${p.id}')">✉️</button>
+                        <button class="icon-btn delete" title="Sil" onclick="deletePayment('${p.id}')">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 4. Units Grid
+        function renderUnitsGrid() {
+            const container = document.getElementById('units-grid-container');
+            container.innerHTML = '';
+
+            let filtered = units;
+            if (activeFilters.units !== 'all') {
+                filtered = units.filter(u => u.status === activeFilters.units);
+            }
+
+            // Global search filter
+            const query = document.getElementById('global-search').value.toLowerCase().trim();
+            if (query !== '' && activeTab === 'units') {
+                filtered = filtered.filter(u => u.name.toLowerCase().includes(query) || u.size.toString().includes(query));
+            }
+
+            filtered.forEach(u => {
+                const box = document.createElement('div');
+                box.className = `unit-box ${u.status}`;
+                box.onclick = () => openEditUnitModal(u.id);
+
+                let statusLabel = "Boş";
+                if (u.status === 'occupied') statusLabel = "Dolu";
+                if (u.status === 'overdue') statusLabel = "Borçlu";
+
+                box.innerHTML = `
+                    <div class="unit-number">${u.name}</div>
+                    <div>
+                        <div class="unit-size">${u.size} m²</div>
+                        <div style="font-size: 12px; margin-top: 4px; font-weight: bold;">₺${u.price}</div>
+                        <div style="font-size: 10px; margin-top: 2px; opacity: 0.8; font-weight: normal;">${statusLabel}</div>
+                    </div>
+                `;
+                container.appendChild(box);
+            });
+        }
+
+        // 5. Customers Table
+        function renderCustomersTable() {
+            const tbody = document.getElementById('customers-table-body');
+            tbody.innerHTML = '';
+
+            let filtered = customers;
+
+            const query = document.getElementById('global-search').value.toLowerCase().trim();
+            if (query !== '' && activeTab === 'customers') {
+                filtered = customers.filter(c => c.name.toLowerCase().includes(query) || c.email.toLowerCase().includes(query) || c.phone.includes(query));
+            }
+
+            filtered.forEach(c => {
+                // Find units rented by customer
+                const rentedUnits = payments.filter(p => p.customerId === c.id).map(p => {
+                    const unit = units.find(u => u.id === p.unitId);
+                    return unit ? unit.name : '';
+                }).filter(Boolean);
+                
+                const unitText = rentedUnits.length > 0 ? [...new Set(rentedUnits)].join(', ') : 'Kiralama Yok';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 500;">${c.name}</td>
+                    <td>${c.phone}</td>
+                    <td>${c.email}</td>
+                    <td>${unitText}</td>
+                    <td><span class="badge-status ${c.status === 'active' ? 'paid' : 'overdue'}">${c.status === 'active' ? 'Aktif' : 'Pasif'}</span></td>
+                    <td>${formatDateText(c.date)}</td>
+                    <td class="action-cell">
+                        <button class="icon-btn primary" onclick="openEditCustomerModal('${c.id}')">✏️</button>
+                        <button class="icon-btn delete" onclick="deleteCustomer('${c.id}')">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 6. Customer Portal View Data
+        function renderCustomerPortal() {
+            const invoicesBody = document.getElementById('portal-invoices-body');
+            const historyList = document.getElementById('portal-history-list');
+            invoicesBody.innerHTML = '';
+            historyList.innerHTML = '';
+
+            // Customer ID for simulation is Can Yılmaz (cust-1)
+            const myCustId = "cust-1";
+            const myPayments = payments.filter(p => p.customerId === myCustId);
+
+            // Active invoices
+            const unpaid = myPayments.filter(p => p.status !== 'paid');
+            document.getElementById('portal-unit-count').innerText = `${unpaid.length} Fatura`;
+
+            if (unpaid.length === 0) {
+                invoicesBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">Ödenecek fatura bulunmamaktadır. Harika! 🌟</td></tr>';
+            } else {
+                unpaid.forEach(p => {
+                    const unit = units.find(u => u.id === p.unitId) || { name: 'Depo -', size: 0 };
+                    let statusLabel = p.status === 'overdue' ? 'Vadesi Geçti' : 'Bekleniyor';
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight: 700; color: var(--primary);">${unit.name}</td>
+                        <td>${unit.size} m²</td>
+                        <td style="font-weight: bold;">₺${p.amount}</td>
+                        <td>${formatDateText(p.dueDate)}</td>
+                        <td><span class="badge-status ${p.status}">${statusLabel}</span></td>
+                        <td>
+                            <button class="btn btn-primary" style="padding: 6px 14px; font-size: 12px; border-radius: var(--radius-sm);" onclick="openStripeCheckout('${p.id}')">
+                                Kart ile Öde
+                            </button>
+                        </td>
+                    `;
+                    invoicesBody.appendChild(tr);
+                });
+            }
+
+            // Payment History (Paid invoices)
+            const paid = myPayments.filter(p => p.status === 'paid');
+            if (paid.length === 0) {
+                historyList.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Henüz geçmiş ödeme bulunmuyor.</div>';
+            } else {
+                paid.forEach(p => {
+                    const unit = units.find(u => u.id === p.unitId) || { name: 'Depo -' };
+                    const item = document.createElement('div');
+                    item.className = 'alert-item';
+                    item.style.borderLeftColor = 'var(--success)';
+                    item.innerHTML = `
+                        <div class="alert-details">
+                            <h5>${unit.name} Kira Ödemesi</h5>
+                            <p>Tutar: ₺${p.amount} - Ödeme T.: ${formatDateText(p.dueDate)}</p>
+                        </div>
+                        <span style="font-weight: bold; color: var(--success); font-size: 13px;">✓ Başarılı</span>
+                    `;
+                    historyList.appendChild(item);
+                });
+            }
+        }
+
+        // Global Search trigger
+        function handleGlobalSearch() {
+            renderAll();
+        }
+
+        // Filter Payments by status pill
+        function filterPayments(status) {
+            activeFilters.payments = status;
+            
+            const pills = document.querySelectorAll('#payment-filters .pill');
+            pills.forEach(p => p.classList.remove('active'));
+            
+            let pillIndex = 0;
+            if (status === 'paid') pillIndex = 1;
+            if (status === 'pending') pillIndex = 2;
+            if (status === 'overdue') pillIndex = 3;
+            
+            pills[pillIndex].classList.add('active');
+            renderPaymentsTable();
+        }
+
+        // Filter Units by status pill
+        function filterUnits(status) {
+            activeFilters.units = status;
+            
+            const pills = document.querySelectorAll('#view-units .filter-pills .pill');
+            pills.forEach(p => p.classList.remove('active'));
+            
+            let pillIndex = 0;
+            if (status === 'empty') pillIndex = 1;
+            if (status === 'occupied') pillIndex = 2;
+            if (status === 'overdue') pillIndex = 3;
+            
+            pills[pillIndex].classList.add('active');
+            renderUnitsGrid();
+        }
+
+        // CSV Export simulation
+        function exportPaymentsToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Musteri,Depo Birimi,Kira Tutari,Son Odeme Tarihi,Durum\r\n";
+            
+            payments.forEach(p => {
+                const customer = customers.find(c => c.id === p.customerId) || { name: 'Bilinmeyen Müşteri' };
+                const unit = units.find(u => u.id === p.unitId) || { name: 'Depo -' };
+                csvContent += `"${customer.name}","${unit.name}",${p.amount},"${p.dueDate}","${p.status}"\r\n`;
+            });
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "depopay_odeme_raporu.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Rapor CSV formatında başarıyla dışa aktarıldı.", "success");
+        }
+
+        // CRUD Operations: Customer
+        function openCustomerModal() {
+            document.getElementById('customer-modal-title').innerText = "Yeni Müşteri Ekle";
+            document.getElementById('edit-customer-id').value = '';
+            document.getElementById('customer-form').reset();
+            document.getElementById('customer-modal').classList.add('active');
+        }
+
+        function openEditCustomerModal(id) {
+            const c = customers.find(item => item.id === id);
+            if (!c) return;
+            document.getElementById('customer-modal-title').innerText = "Müşteriyi Düzenle";
+            document.getElementById('edit-customer-id').value = c.id;
+            document.getElementById('cust-name').value = c.name;
+            document.getElementById('cust-phone').value = c.phone;
+            document.getElementById('cust-email').value = c.email;
+            document.getElementById('cust-status').value = c.status;
+            document.getElementById('customer-modal').classList.add('active');
+        }
+
+        function closeCustomerModal() {
+            document.getElementById('customer-modal').classList.remove('active');
+        }
+
+        function handleCustomerSubmit(event) {
+            event.preventDefault();
+            const id = document.getElementById('edit-customer-id').value;
+            const name = document.getElementById('cust-name').value;
+            const phone = document.getElementById('cust-phone').value;
+            const email = document.getElementById('cust-email').value;
+            const status = document.getElementById('cust-status').value;
+
+            if (id) {
+                // Edit existing
+                customers = customers.map(c => c.id === id ? { ...c, name, phone, email, status } : c);
+                showToast("Müşteri bilgileri güncellendi.", "success");
+            } else {
+                // Add new
+                const newId = `cust-${customers.length + 1}`;
+                const today = new Date().toISOString().split('T')[0];
+                customers.push({ id: newId, name, phone, email, status, date: today });
+                showToast("Yeni müşteri başarıyla eklendi.", "success");
+            }
+
+            closeCustomerModal();
+            saveDatabase();
+        }
+
+        function deleteCustomer(id) {
+            if (confirm("Bu müşteriyi silmek istediğinize emin misiniz? Tüm ilişkili ödeme planları silinecektir.")) {
+                customers = customers.filter(c => c.id !== id);
+                payments = payments.filter(p => p.customerId !== id);
+                showToast("Müşteri kaydı ve ödemeleri silindi.", "warning");
+                saveDatabase();
+            }
+        }
+
+        // CRUD Operations: Units
+        function openAddUnitModal() {
+            document.getElementById('unit-modal-title').innerText = "Yeni Depo Birimi Ekle";
+            document.getElementById('edit-unit-id').value = '';
+            document.getElementById('unit-form').reset();
+            document.getElementById('unit-modal').classList.add('active');
+        }
+
+        function openEditUnitModal(id) {
+            const u = units.find(item => item.id === id);
+            if (!u) return;
+            document.getElementById('unit-modal-title').innerText = "Depo Birimini Düzenle";
+            document.getElementById('edit-unit-id').value = u.id;
+            document.getElementById('unit-name-input').value = u.name;
+            document.getElementById('unit-size-input').value = u.size;
+            document.getElementById('unit-price-input').value = u.price;
+            document.getElementById('unit-status-input').value = u.status;
+            document.getElementById('unit-modal').classList.add('active');
+        }
+
+        function closeUnitModal() {
+            document.getElementById('unit-modal').classList.remove('active');
+        }
+
+        function handleUnitSubmit(event) {
+            event.preventDefault();
+            const id = document.getElementById('edit-unit-id').value;
+            const name = document.getElementById('unit-name-input').value;
+            const size = parseInt(document.getElementById('unit-size-input').value);
+            const price = parseInt(document.getElementById('unit-price-input').value);
+            const status = document.getElementById('unit-status-input').value;
+
+            if (id) {
+                // Edit
+                units = units.map(u => u.id === id ? { ...u, name, size, price, status } : u);
+                showToast("Depo birimi güncellendi.", "success");
+            } else {
+                // Add new
+                const newId = `unit-${units.length + 1}`;
+                units.push({ id: newId, name, size, price, status });
+                showToast("Yeni depo birimi eklendi.", "success");
+            }
+
+            closeUnitModal();
+            saveDatabase();
+        }
+
+        // CRUD Operations: Payments
+        function openPaymentModal() {
+            const custSelect = document.getElementById('pay-customer');
+            const unitSelect = document.getElementById('pay-unit');
+            
+            custSelect.innerHTML = '';
+            unitSelect.innerHTML = '';
+
+            customers.forEach(c => {
+                custSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
+
+            units.forEach(u => {
+                unitSelect.innerHTML += `<option value="${u.id}">${u.name} (Aylık ₺${u.price})</option>`;
+            });
+
+            updatePaymentAmountFromUnit();
+            document.getElementById('pay-due').value = new Date().toISOString().split('T')[0];
+            document.getElementById('payment-modal').classList.add('active');
+        }
+
+        function updatePaymentAmountFromUnit() {
+            const unitId = document.getElementById('pay-unit').value;
+            const unit = units.find(u => u.id === unitId);
+            if (unit) {
+                document.getElementById('pay-amount').value = unit.price;
+            }
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.remove('active');
+        }
+
+        function handlePaymentSubmit(event) {
+            event.preventDefault();
+            const customerId = document.getElementById('pay-customer').value;
+            const unitId = document.getElementById('pay-unit').value;
+            const amount = parseInt(document.getElementById('pay-amount').value);
+            const dueDate = document.getElementById('pay-due').value;
+            const cycle = document.getElementById('pay-cycle').value;
+            const status = document.getElementById('pay-status').value;
+
+            const newId = `pay-${payments.length + 1}`;
+            payments.push({ id: newId, customerId, unitId, amount, dueDate, status, cycle });
+
+            // If payment plan is made occupied, update unit status
+            if (status === 'paid') {
+                units = units.map(u => u.id === unitId ? { ...u, status: 'occupied' } : u);
+            } else if (status === 'overdue') {
+                units = units.map(u => u.id === unitId ? { ...u, status: 'overdue' } : u);
+            } else {
+                units = units.map(u => u.id === unitId ? { ...u, status: 'occupied' } : u);
+            }
+
+            showToast("Yeni ödeme planı başarıyla başlatıldı.", "success");
+            closePaymentModal();
+            saveDatabase();
+        }
+
+        // Delete payment
+        function deletePayment(id) {
+            if (confirm("Bu faturayı/ödeme planını silmek istediğinize emin misiniz?")) {
+                payments = payments.filter(p => p.id !== id);
+                showToast("Fatura kaydı başarıyla silindi.", "warning");
+                saveDatabase();
+            }
+        }
+
+        // Stripe Checkout Simulation
+        function openStripeCheckout(paymentId) {
+            const p = payments.find(item => item.id === paymentId);
+            if (!p) return;
+
+            const customer = customers.find(c => c.id === p.customerId) || { name: 'Can Yılmaz' };
+
+            document.getElementById('checkout-payment-id').value = p.id;
+            document.getElementById('cc-holder-mock').innerText = customer.name.toUpperCase();
+            document.getElementById('cc-name').value = customer.name;
+            document.getElementById('checkout-pay-btn').innerText = `₺${p.amount.toLocaleString('tr-TR')} Öde`;
+            
+            // Format cc card number placeholder
+            document.getElementById('checkout-modal').classList.add('active');
+        }
+
+        function closeCheckoutModal() {
+            document.getElementById('checkout-modal').classList.remove('active');
+            document.getElementById('checkout-form').reset();
+            document.getElementById('cc-number-mock').innerText = '•••• •••• •••• ••••';
+            document.getElementById('cc-expiry-mock').innerText = '12/29';
+            document.getElementById('cc-holder-mock').innerText = 'MÜŞTERİ ADI';
+        }
+
+        function processCardPayment(event) {
+            event.preventDefault();
+            const paymentId = document.getElementById('checkout-payment-id').value;
+            const p = payments.find(item => item.id === paymentId);
+            if (!p) return;
+
+            document.getElementById('checkout-pay-btn').disabled = true;
+            document.getElementById('checkout-pay-btn').innerText = "İşleniyor...";
+
+            setTimeout(() => {
+                // Success State Update
+                payments = payments.map(item => item.id === paymentId ? { ...item, status: 'paid' } : item);
+                
+                // If unit was overdue, mark occupied
+                const otherOverdue = payments.filter(x => x.unitId === p.unitId && x.status === 'overdue');
+                if (otherOverdue.length === 0) {
+                    units = units.map(u => u.id === p.unitId ? { ...u, status: 'occupied' } : u);
+                }
+
+                showToast(`₺${p.amount} tutarındaki ödeme Stripe üzerinden başarıyla alındı!`, "success");
+                
+                closeCheckoutModal();
+                document.getElementById('checkout-pay-btn').disabled = false;
+                
+                saveDatabase();
+            }, 1500);
+        }
+
+        // Simulated Toast Notifications
+        function showToast(message, type = 'primary') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let emoji = 'ℹ️';
+            if (type === 'success') emoji = '✅';
+            if (type === 'warning') emoji = '⚠️';
+            if (type === 'danger') emoji = '🚨';
+
+            toast.innerHTML = `
+                <span>${emoji}</span>
+                <div style="font-size: 13px; font-weight: 500;">${message}</div>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    container.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        function sendSimulatedAlert(paymentId) {
+            const p = payments.find(item => item.id === paymentId);
+            if (!p) return;
+
+            const cust = customers.find(c => c.id === p.customerId);
+            const unit = units.find(u => u.id === p.unitId);
+            if (!cust || !unit) return;
+
+            const name = cust.name;
+            const graceText = document.getElementById('email-template').value
+                .replace('{NAME}', name)
+                .replace('{UNIT}', unit.name)
+                .replace('{AMOUNT}', `₺${p.amount}`)
+                .replace('{DATE}', formatDateText(p.dueDate));
+
+            showToast(`SMS Gönderildi: ${cust.phone}`, 'success');
+            setTimeout(() => {
+                showToast(`E-posta Gönderildi: ${cust.email}`, 'success');
+            }, 400);
+
+            // Add simulated log entry or toast notification with details
+            console.log("Simulated notification: ", graceText);
+        }
+
+        // Settings Save
+        function saveSettings(event) {
+            event.preventDefault();
+            showToast("Sistem parametreleri başarıyla güncellendi.", "success");
+        }
+
+        // Utility: Date Formatter
+        function formatDateText(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        // Card format utility
+        function formatCardNumber(input) {
+            let value = input.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let matches = value.match(/\d{4,16}/g);
+            let match = matches && matches[0] || '';
+            let parts = [];
+
+            for (let i=0, len=match.length; i<len; i+=4) {
+                parts.push(match.substring(i, i+4));
+            }
+
+            if (parts.length > 0) {
+                input.value = parts.join(' ');
+                document.getElementById('cc-number-mock').innerText = parts.join(' ');
+            } else {
+                input.value = value;
+                document.getElementById('cc-number-mock').innerText = value || '•••• •••• •••• ••••';
+            }
+        }
+
+        function formatExpiry(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 2) {
+                input.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                document.getElementById('cc-expiry-mock').innerText = input.value;
+            } else {
+                input.value = value;
+                document.getElementById('cc-expiry-mock').innerText = value || '12/29';
+            }
+        }
+
+        // Theme Toggle (Dark Mode)
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            showToast(isDark ? "Karanlık mod aktif." : "Aydınlık mod aktif.");
+            
+            // Re-render chart to fit text color
+            if (revenueChart) {
+                revenueChart.options.scales.x.grid.color = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0';
+                revenueChart.options.scales.y.grid.color = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0';
+                revenueChart.options.scales.x.ticks.color = isDark ? '#94a3b8' : '#64748b';
+                revenueChart.options.scales.y.ticks.color = isDark ? '#94a3b8' : '#64748b';
+                revenueChart.update();
+            }
+        }
+
+        // Initialize Charts (Chart.js)
+        function initCharts() {
+            const canvas = document.getElementById('revenueChart');
+            const ctx = canvas.getContext('2d');
+            if (typeof Chart === 'undefined') {
+                const box = canvas.parentElement;
+                box.innerHTML = '<div style="height:300px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--text-muted);border:1px dashed var(--border-color);border-radius:12px;padding:20px;">Grafik kütüphanesi internet olmadığı için yüklenemedi. Uygulamanın diğer tüm butonları çalışır.</div>';
+                return;
+            }
+            
+            const isDark = document.body.classList.contains('dark-mode');
+            
+            // Calculate mock monthly revenues
+            const dataPaid = [24000, 32000, 28000, 41000, 38000, 48250];
+            const dataExpected = [26000, 34000, 30000, 43000, 40000, 50650];
+
+            revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran'],
+                    datasets: [
+                        {
+                            label: 'Tahsil Edilen Tutar (₺)',
+                            data: dataPaid,
+                            borderColor: '#0A988B',
+                            backgroundColor: 'rgba(10, 152, 139, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#0A988B'
+                        },
+                        {
+                            label: 'Beklenen Toplam Borç (₺)',
+                            data: dataExpected,
+                            borderColor: '#64748b',
+                            borderDash: [5, 5],
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            tension: 0.1,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: {
+                                    family: 'Inter',
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: isDark ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0'
+                            },
+                            ticks: {
+                                color: isDark ? '#94a3b8' : '#64748b'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: isDark ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0'
+                            },
+                            ticks: {
+                                color: isDark ? '#94a3b8' : '#64748b'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            if (!revenueChart) return;
+            
+            // Re-calculate mock paid totals
+            const totalPaid = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
+            const totalExpected = payments.reduce((sum, p) => sum + p.amount, 0);
+
+            // Dynamically update last month's data in the chart
+            revenueChart.data.datasets[0].data[5] = totalPaid;
+            revenueChart.data.datasets[1].data[5] = totalExpected;
+            revenueChart.update();
+        }
+
+
+        // MOBİL TIKLAMA GARANTİ EKLERİ
+        function updateMobileBottomNav(activeView) {
+            const buttons = document.querySelectorAll('#mobile-bottom-nav button');
+            buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.view === activeView));
+        }
+
+        const originalSwitchViewForMobile = switchView;
+        switchView = function(viewName) {
+            originalSwitchViewForMobile(viewName);
+            updateMobileBottomNav(viewName);
+            if (window.innerWidth <= 768) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('#mobile-bottom-nav button').forEach(function(btn) {
+                const go = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    currentRole = 'admin';
+                    const navLinks = document.getElementById('nav-links');
+                    const searchContainer = document.getElementById('header-search-container');
+                    const roleBtn = document.getElementById('role-toggle-btn');
+                    if (navLinks) { navLinks.style.pointerEvents = 'auto'; navLinks.style.opacity = '1'; }
+                    if (searchContainer) searchContainer.style.display = 'block';
+                    if (roleBtn) roleBtn.innerText = '➡️ Müşteri Portalı';
+                    const av = document.getElementById('user-avatar'); if (av) av.innerText = 'EA';
+                    const fn = document.getElementById('user-fullname'); if (fn) fn.innerText = 'Emirhan Ayırtır';
+                    const rl = document.getElementById('user-role-label'); if (rl) rl.innerText = 'Yönetici';
+                    switchView(btn.dataset.view);
+                };
+                btn.addEventListener('click', go, { passive: false });
+                btn.addEventListener('touchend', go, { passive: false });
+            });
+
+            // Bazı telefon tarayıcılarında inline onclick gecikirse diye yedek dokunma desteği
+            document.body.addEventListener('touchend', function(e) {
+                const el = e.target.closest('button, .nav-item, .pill, .unit-box, .stat-card.clickable, .close-modal');
+                if (!el || el.closest('#mobile-bottom-nav')) return;
+                if (el.dataset._touchHandled === '1') return;
+                el.dataset._touchHandled = '1';
+                setTimeout(() => { el.dataset._touchHandled = '0'; }, 450);
+            }, { passive: true });
+        });
+    </script>
+
+    <div class="mobile-bottom-nav" id="mobile-bottom-nav">
+        <button type="button" data-view="dashboard" class="active"><span>📊</span>Panel</button>
+        <button type="button" data-view="payments"><span>💳</span>Ödeme</button>
+        <button type="button" data-view="units"><span>📦</span>Depo</button>
+        <button type="button" data-view="customers"><span>👥</span>Müşteri</button>
+        <button type="button" data-view="settings"><span>⚙️</span>Ayar</button>
+    </div>
+
+</body>
+</html>
