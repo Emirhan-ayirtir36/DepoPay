@@ -111,6 +111,6 @@ Emirhan Ayırtır
 İstanbul Topkapı Üniversitesi
 Bilgisayar Programcılığı Bölümü
 
-Lisans
+Ön Lisans
 
 Bu proje eğitim amaçlı geliştirilmiştir.
